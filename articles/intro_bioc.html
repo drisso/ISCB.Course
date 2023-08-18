@@ -102,14 +102,13 @@ of a common data infrastructure that powers interoperability across
 packages.</p>
 <p>Users should be able to analyze their data using functions from
 different Bioconductor packages without the need to convert between
-formats. To this end, the <code>SingleCellExperiment</code> class (from
-the <em>SingleCellExperiment</em> package) serves as the common currency
-for data exchange across 70+ single-cell-related Bioconductor
-packages.</p>
-<p>This class implements a data structure that stores all aspects of our
-single-cell data - gene-by-cell expression data, per-cell metadata and
-per-gene annotation - and manipulate them in a synchronized manner.</p>
-<p><img src="http://bioconductor.org/books/3.17/OSCA.intro/images/SingleCellExperiment.png"><!-- --></p>
+formats. To this end, the <code>SummarizedExperiment</code> class (from
+the <em>SummarizedExperiment</em> package) serves as the common currency
+for data exchange across hundreds of Bioconductor packages.</p>
+<p>This class implements a data structure that stores all aspects of the
+data - gene-by-sample expression data, per-sample metadata and per-gene
+annotation - and manipulate them in a synchronized manner.</p>
+<p><img src="https://raw.githubusercontent.com/Bioconductor/SummarizedExperiment/devel/vignettes/SE.svg"><!-- --></p>
 <p>Let’s start with an example dataset.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">airway</span><span class="op">)</span></span>
@@ -132,7 +131,7 @@ the slots. These are the only ways to interact with the objects (rather
 than directly accessing the slots).</p>
 <p>Depending on the object, slots can contain different types of data
 (e.g., numeric matrices, lists, etc.). We will here review the main
-slots of the SingleCellExperiment class as well as their getter/setter
+slots of the SummarizedExperiment class as well as their getter/setter
 methods.</p>
 <div class="section level3">
 <h3 id="the-assays">The <code>assays</code><a class="anchor" aria-label="anchor" href="#the-assays"></a>
@@ -254,9 +253,25 @@ adding additional variables as columns.</p>
 <span><span class="co">## SRR1039521  SRX384358 SRS508580 SAMN02422677  21164133</span></span></code></pre>
 </div>
 <div class="section level3">
-<h3 id="the-rowranges">The `rowRanges``<a class="anchor" aria-label="anchor" href="#the-rowranges"></a>
+<h3 id="the-rowranges">The <code>rowRanges</code><a class="anchor" aria-label="anchor" href="#the-rowranges"></a>
 </h3>
+<p>You might have noticed that our example object is of a special type
+of SummarizedExperiment class.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">airway</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] "RangedSummarizedExperiment"</span></span>
+<span><span class="co">## attr(,"package")</span></span>
+<span><span class="co">## [1] "SummarizedExperiment"</span></span></code></pre>
+<p>This means that in addition to the already-discussed slots, it
+contains a <code>rowRanges</code> component, wich is a
+<code>GRanges</code> object with the information on the genomic
+locations of the genes.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="fu">rowRanges</span><span class="op">(</span><span class="va">airway</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] "CompressedGRangesList"</span></span>
+<span><span class="co">## attr(,"package")</span></span>
+<span><span class="co">## [1] "GenomicRanges"</span></span></code></pre>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">rowRanges</span><span class="op">(</span><span class="va">airway</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## GRangesList object of length 63677:</span></span>
 <span><span class="co">## $ENSG00000000003</span></span>
@@ -282,9 +297,35 @@ adding additional variables as columns.</p>
 </div>
 </div>
 <div class="section level2">
+<h2 id="granges-and-grangeslist-operations">GRanges and GRangesList operations<a class="anchor" aria-label="anchor" href="#granges-and-grangeslist-operations"></a>
+</h2>
+<p>A number of operations are implemented for GRanges, including
+<code>subset</code>, <code>split</code>, <code>length</code>,
+<code>subsetByOverlap</code> and others.</p>
+<p>For instance, we can find the number of exons of the first gene and
+their average length in nucleotides with the following code.</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Exctract the first gene</span></span>
+<span><span class="va">gene1</span> <span class="op">&lt;-</span> <span class="fu">rowRanges</span><span class="op">(</span><span class="va">airway</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
+<span></span>
+<span><span class="co"># Number of exons</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">gene1</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 17</span></span></code></pre>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Average exon length</span></span>
+<span><span class="va">gene1</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/start.html" class="external-link">width</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 216.9412</span></span></code></pre>
+</div>
+<div class="section level2">
+<h2 id="further-reading">Further reading<a class="anchor" aria-label="anchor" href="#further-reading"></a>
+</h2>
+<p><a href="https://carpentries-incubator.github.io/bioc-project/" class="external-link">The
+Bioconductor Project carpentries course</a></p>
+</div>
+<div class="section level2">
 <h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## R version 4.3.0 (2023-04-21)</span></span>
 <span><span class="co">## Platform: x86_64-pc-linux-gnu (64-bit)</span></span>
