@@ -1,52 +1,48 @@
-# BuildABiocWorkshop
+# ISCB 2023 -- Analysis of genomic data: R Bioconductor
 
-This package is a template for building a Bioconductor workshop. The package
-includes Github actions to:
+## Instructor
 
-1. Set up bioconductor/bioconductor_docker:devel on Github resources
-2. Install package dependencies for your package (based on the `DESCRIPTION` file)
-3. Run `rcmdcheck::rcmdcheck`
-4. Build a pkgdown website and push it to github pages
-5. Build a docker image with the installed package and dependencies and deploy to [the Github Container Repository](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#pulling-container-images) at the name `ghcr.io/gihub_user/repo_name`, all lowercase. 
+Davide Risso, Department of Statistical Sciences, University of Padova, Italy
 
-## Responsibilities
+## Description
 
-Package authors are primarily responsible for:
+Omics data are quickly becoming ubiquitous in research and clinical studies, particularly in cancer, with several hospitals
+now routinely measuring genomic and transcriptomic profiles of cancer patients, in their efforts to move towards
+personalized medicine.
+While many bioinformatic and statistical methods exist to analyze such data, the size and complexity of omics data can
+be daunting for researchers approaching the field. Genomic data are characterized by high-dimensionality and complexity,
+technology-specific biases, and require domain-specific knowledge and bespoke informatic tools to be successfully
+analyzed.
+This half-day course introduces participants to Bioconductor, an R-based open science and open development project for
+the analysis and comprehension of high-throughput biological data, such as RNA and DNA sequencing. We will introduce
+the Bioconductor project and how it relates to other R packages, explain how to work with DNA sequences in R, and how
+to analyze RNA sequencing datasets, using The Cancer Genome Atlas as an example. At the end of the course, participants
+should be able to explore DNA mutations and copy number alterations, and to perform and interpret a differential
+expression analysis.
 
-1. Creating a landing site of their choosing for their workshops (a website). This website should be listed in the `DESCRIPTION` file as the `URL`.
-2. Creating a docker image that will contain workshop materials and the installed packages necessary to run those materials. The name of the resulting docker image, including "tag" if desired, should be listed in a non-standard tag, `DockerImage:` in the `DESCRIPTION` file. 
+## Course outline
 
-Both of those tasks can be accomplished using the Github actions included in this template package. The vignette accompanying this package describes how to accomplish both of these tasks.
+The course consists of two parts. The first session is a mix of theory and practice. Participants will be introduced to the
+basics of sequencing data and Bioconductor. We will also discuss how to perform a differential expression analysis and
+how to integrate genomic and clinical data. The second session will be hands-on, where participants apply what they
+have learned to a real dataset. There will be a brief rejoinder at the end of the session to discuss the analyses.
+Specifically, the course will cover the following topics:
 
-## Details
+1. Data import and management in R/Bioconductor
+2. Exploratory Data Analysis and Quality Control (EDA/QC)
+3. Data normalization
+4. Differential expression analysis
+5. Integration of genomic and clinical data
 
-For detailed instructions, see the `How to build a workshop` article/vignette.
+By the end of this course, you should be able to:
 
-## Results of successful deployment
+- Have a working knowledge of DNA and RNA sequencing
+- Perform an exploratory analysis of genomic and transcriptomic data
+- Perform a differential expression analysis
+- Interpret and visualize the results
 
-- A working docker image that contains the installed package and dependencies.
-- An up-to-date `pkgdown` website at https://YOURUSERNAME.github.io/YOURREPOSITORYNAME/
-- Docker image will be tagged with `latest`, `sha-XXXXXX` where `XXXXXX` is the hash of the current `master` commit, and `master`. 
+## Target audience
 
-## To use the resulting image:
-
-```sh
-docker run -e PASSWORD=<choose_a_password_for_rstudio> -p 8787:8787 YOURDOCKERIMAGENAME
-```
-Once running, navigate to http://localhost:8787/ and then login with `rstudio`:`yourchosenpassword`. 
-
-To try with **this** repository docker image:
-
-```sh
-docker run -e PASSWORD=abc -p 8787:8787 ghcr.io/bioconductor/buildabiocworkshop
-```
-
-*NOTE*: Running docker that uses the password in plain text like above exposes the password to others 
-in a multi-user system (like a shared workstation or compute node). In practice, consider using an environment 
-variable instead of plain text to pass along passwords and other secrets in docker command lines. 
-
-
-## Whatcha get
-
-- https://bioconductor.github.io/BuildABiocWorkshop
-- A Docker image that you can run locally, in the cloud, or (usually) even as a singularity container on HPC systems. 
+The course is aimed at biostatisticians or medical researchers working with biological or clinical data that want to learn
+how to include genomics and transcriptomics data in their analyses. Participants are expected to have basic knowledge of
+the R statistical software; no prior knowledge of Bioconductor is required.

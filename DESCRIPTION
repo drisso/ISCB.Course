@@ -1,28 +1,32 @@
-Package: BuildABiocWorkshop
-Title: Bioconductor or R Workshop Template and Github Actions
-Version: 2.0.0
+Package: ISCB.Course
+Title: Analysis of genomic data with R Bioconductor
+Version: 0.0.1
 Authors@R: 
-    person(given = "Sean",
-           family = "Davis",
+    person(given = "Davide",
+           family = "Risso",
            role = c("aut", "cre"),
-           email = "seandavi@gmail.com",
-           comment = c(ORCID = "0000-0002-8991-6458"))
-Description: This package serves as a template for using github actions to 
-    prepare a Bioconductor Workshop package for use. In particular,
-    a pkgdown website and docker image are generated based on workflow 
-    settings. 
-License: MIT + file LICENSE
+           email = "risso.davide@gmail.com",
+           comment = c(ORCID = "0000-0001-8508-5012"))
+Description: This tutorial aims to provide a solid foundation in using
+    Bioconductor tools for omics data analysis by walking through
+    various steps of typical workflows using example datasets. 
+License: Artistic-2.0
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.0
+RoxygenNote: 7.2.3
 Depends: 
-    Biobase
-Suggests: 
+    R (>= 4.3.0)
+Imports:
+    SummarizedExperiment,
+    GenomicRanges,
+    airway
+Suggests:
+    BiocStyle,
     knitr,
     rmarkdown,
     pkgdown
-URL: https://seandavi.github.io/BuildABiocWorkshop/
-BugReports: https://github.com/seandavi/BuildABiocWorkshop/issues/new/choose
+URL: https://drisso.github.io/ISCB.Course/
+BugReports: https://github.com/drisso/ISCB.Course/issues/new/choose
 VignetteBuilder: knitr
-DockerImage: ghcr.io/seandavi/buildabiocworkshop:latest
+DockerImage: ghcr.io/drisso/iscb.course:latest
