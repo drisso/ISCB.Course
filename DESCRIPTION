@@ -20,7 +20,10 @@ Depends:
 Imports:
     SummarizedExperiment,
     GenomicRanges,
-    airway
+    airway,
+    ggplot2,
+    EDASeq,
+    edgeR
 Suggests:
     BiocStyle,
     knitr,

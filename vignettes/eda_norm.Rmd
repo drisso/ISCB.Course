@@ -1,0 +1,132 @@
+---
+title: Exploratory Data Analysis and Normalization
+vignette: >
+  % \VignetteIndexEntry{EDA}
+  % \VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output:
+  html_document:
+    mathjax: null   
+---
+
+# Setup
+
+```{r setup, message = FALSE, warning=FALSE}
+library(SummarizedExperiment)
+library(airway)
+library(edgeR)
+library(EDASeq)
+library(ggplot2)
+theme_set(theme_bw())
+```
+
+- TRADURRE IN INGLESE TUTTO
+
+# The Airway data
+
+```{r}
+data(airway)
+airway
+colData(airway)
+```
+
+# Gene filtering
+
+In this dataset, we have measurements for `r nrow(airway)` genes. Not all of them will be expressed in this particular system.
+
+```{r}
+table(rowSums(assay(airway))>0)
+```
+
+In general, it is advisable to remove those genes with a low expression level. Often, we may consider a filter that keeps those genes that are expressed in at least some reads in a certain number of samples.
+
+The `filterByExpr` function of the `edgeR` package does that, considering by default 10 reads in at least 10 samples.
+
+```{r}
+filter <- filterByExpr(airway)
+table(filter)
+filtered <- airway[filter,]
+filtered
+```
+
+# Exploratory Data Analysis
+
+Exploratory Data Analysis (EDA) is useful to highlight those genes that have lower quality or that can have a high leverage in the downstream analyses.
+
+## Total number of reads
+
+First, we need to compute the total number of mapped reads per sample.
+
+```{r}
+airway$sum <- colSums(assay(airway))
+
+df <- as.data.frame(colData(airway))
+
+ggplot(df, aes(x=SampleName, y=sum, fill=cell)) +
+    geom_bar(stat="identity")
+
+ggplot(df, aes(x=SampleName, y=sum, fill=dex)) +
+    geom_bar(stat="identity")
+```
+
+While there is clearly a difference in the total number of reads, it does not appear to be related to either cell type or treatment.
+
+## Count distribution
+
+Another immediately available plot is the boxplot of the count distribution.
+Given the skewness of count distributions, we typically perform a log transformation.
+
+```{r}
+pal <- palette()[-1]
+boxplot(log1p(assay(filtered)), col=pal[filtered$cell], las=2)
+```
+
+Se vogliamo evitare di calcolare i logaritmi per ogni grafico, possiamo salvare la matrice dei logaritmi in un nuovo slot dell'oggetto `filtered`.
+
+```{r}
+assay(filtered, "logcounts") <- log1p(assay(filtered))
+filtered
+```
+
+## Relative Log Expression (RLE)
+
+Come detto a lezione, la distribuzione RLE è spesso più utile di quella dei conteggi, specialmente per confrontare le normalizzazioni.
+
+Il pacchetto `EDASeq` contiene la funzione `plotRLE` che può essere usata in questo caso.
+
+```{r}
+plotRLE(assay(filtered), col=pal[filtered$cell], outline=FALSE, las=2)
+```
+
+## Analisi delle componenti principali
+
+Osservare come le prime due o tre componenti principali segregano i campioni può aiutare a capire quali sono le variabili che più influenzano i valori di espressione. Idealmente, vorremmo che i campioni si raggruppassero per classe biologica.
+
+Il pacchetto `EDASeq` ha una funzione `plotPCA` che può essere usata in questo caso. In alternativa la PCA può essere calcolata manualmente con la solita funzione `prcomp()`.
+
+```{r}
+tmp <- assay(filtered)
+colnames(tmp) <- filtered$cell
+plotPCA(tmp, col=pal[filtered$dex])
+```
+
+# Normalization
+
+```{r}
+assay(filtered, "uq") <- betweenLaneNormalization(assay(filtered), which="upper")
+```
+
+```{r}
+boxplot(log1p(assay(filtered, "uq")), col=pal[filtered$cell], las=2)
+```
+
+```{r}
+plotRLE(assay(filtered, "uq"), col=pal[filtered$cell], las=2, outline=FALSE)
+```
+
+```{r}
+tmp <- assay(filtered, "uq")
+colnames(tmp) <- filtered$cell
+plotPCA(tmp, col=pal[filtered$dex])
+```
+
