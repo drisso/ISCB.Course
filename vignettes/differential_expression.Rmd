@@ -131,3 +131,14 @@ ComplexHeatmap::Heatmap(heatmapData,
                         top_annotation = heatmapColAnnot,
                         cluster_rows = TRUE, cluster_columns = TRUE)
 ```
+
+# Further reading
+
+[The Bioconductor RNA-seq carpentries course](https://carpentries-incubator.github.io/bioc-rnaseq/)
+
+
+# Session Info
+
+```{r sessionInfo}
+sessionInfo()
+```

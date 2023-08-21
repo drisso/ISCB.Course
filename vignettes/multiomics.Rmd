@@ -1,0 +1,132 @@
+---
+title: TCGA case study
+vignette: >
+  % \VignetteIndexEntry{TCGA case study}
+  % \VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output:
+  html_document:
+    mathjax: null   
+---
+
+# Setup
+
+```{r setup, message = FALSE, warning=FALSE}
+library(MultiAssayExperiment)
+library(curatedTCGAData)
+library(TCGAutils)
+library(DESeq2)
+library(survival)
+library(survminer)
+library(ggplot2)
+theme_set(theme_bw())
+```
+
+# The MultiAssayExperiment class
+
+```{r, echo=FALSE}
+knitr::include_graphics("https://waldronlab.io/MultiAssayWorkshop/articles/MultiAssayExperiment.png")
+```
+
+# Curated TCGA data
+
+```{r}
+data(diseaseCodes)
+diseaseCodes
+```
+
+```{r}
+curatedTCGAData("ACC", version = "2.0.1", dry.run = TRUE)
+```
+
+```{r}
+acc <- curatedTCGAData(
+    diseaseCode = "ACC",
+    assays = c(
+        "miRNASeqGene", "Mutation", "RNASeq2GeneNorm", "CNVSNP"
+    ),
+    version = "2.0.1",
+    dry.run = FALSE
+)
+acc
+```
+```{r}
+experiments(acc)
+sampleMap(acc)
+sampleTables(acc)
+```
+
+```{r}
+data("sampleTypes")
+sampleTypes
+```
+
+```{r}
+getSubtypeMap(acc)
+```
+
+```{r}
+table(colData(acc)$Histology)
+table(colData(acc)$OncoSign)
+```
+
+# Primary tumor RNA-seq
+
+```{r}
+primaryTumors <- TCGAprimaryTumors(acc)
+sampleTables(primaryTumors)
+se <- getWithColData(primaryTumors, "ACC_RNASeq2GeneNorm-20160128")
+se
+```
+
+```{r}
+cl <- getClinicalNames("ACC")
+cl
+```
+
+```{r}
+table(se$vital_status)
+table(se$pathologic_stage)
+table(se$gender)
+table(se$radiation_therapy)
+summary(se$years_to_birth)
+```
+
+## Differential expression
+
+```{r}
+assay(se) <- round(assay(se))
+se <- se[,!is.na(se$OncoSign)]
+
+dds <- DESeqDataSet(se,
+                    design = ~ gender + years_to_birth + OncoSign)
+dds <- DESeq(dds)
+
+res <- results(dds, contrast = c("OncoSign", "TERT/ZNRF3", "TP53/NF1"))
+summary(res)
+head(res[order(res$pvalue),])
+```
+# Survival Analysis
+
+```{r}
+se$overall_survival <- ifelse(se$vital_status == 1,
+                                   se$days_to_death,
+                                   se$days_to_last_followup)
+```
+
+```{r}
+se_sub <- se[,se$OncoSign %in% c("TERT/ZNRF3", "TP53/NF1")]
+sfit <- survfit(Surv(overall_survival, vital_status)~OncoSign,
+                data=as.data.frame(colData(se_sub)))
+ggsurvplot(sfit, conf.int=TRUE, pval = TRUE)
+```
+
+# Further reading
+
+[The Waldron Lab MultiAssayWorkshop](https://waldronlab.io/MultiAssayWorkshop)
+
+# Session Info
+
+```{r sessionInfo}
+sessionInfo()
+```

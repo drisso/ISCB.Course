@@ -130,3 +130,8 @@ colnames(tmp) <- filtered$cell
 plotPCA(tmp, col=pal[filtered$dex])
 ```
 
+# Session Info
+
+```{r sessionInfo}
+sessionInfo()
+```

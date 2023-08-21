@@ -25,7 +25,12 @@ Imports:
     EDASeq,
     edgeR,
     DESeq2,
-    ComplexHeatmap
+    ComplexHeatmap,
+    MultiAssayExperiment,
+    curatedTCGAData,
+    TCGAutils,
+    survival,
+    survminer
 Suggests:
     BiocStyle,
     knitr,
