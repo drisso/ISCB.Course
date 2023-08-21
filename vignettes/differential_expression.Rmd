@@ -1,0 +1,133 @@
+---
+title: Differential Expression Analysis
+vignette: >
+  % \VignetteIndexEntry{Differential Expression}
+  % \VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output:
+  html_document:
+    mathjax: null   
+---
+
+# Setup
+
+```{r setup, message = FALSE, warning=FALSE}
+library(SummarizedExperiment)
+library(airway)
+library(DESeq2)
+library(edgeR)
+library(ComplexHeatmap)
+library(ggplot2)
+theme_set(theme_bw())
+```
+
+# Load data and filtering
+
+```{r}
+data(airway)
+
+filter <- filterByExpr(airway)
+table(filter)
+filtered <- airway[filter,]
+
+filtered
+```
+
+```{r}
+dds <- DESeqDataSet(filtered,
+                    design = ~ cell + dex)
+dds
+
+class(dds)
+is(dds, "SummarizedExperiment")
+```
+
+# Normalization
+
+```{r}
+dds <- estimateSizeFactors(dds)
+
+ggplot(data.frame(libSize = colSums(assay(dds)),
+                  sizeFactor = sizeFactors(dds),
+                  Group = dds$cell),
+       aes(x = libSize, y = sizeFactor, col = Group)) +
+    geom_point(size = 3)
+```
+
+
+# Dispersion Estimation
+
+```{r}
+dds <- estimateDispersions(dds)
+```
+
+```{r}
+plotDispEsts(dds)
+```
+
+# Test for DE
+
+```{r}
+dds <- nbinomWaldTest(dds)
+```
+
+Note that the function `DESeq()` performs these three steps automatically.
+
+# Explore the results
+
+```{r}
+res <- results(dds, contrast = c("dex", "trt", "untrt"))
+res
+```
+
+```{r}
+summary(res)
+```
+
+```{r}
+head(res[order(res$pvalue), ])
+```
+
+## Histogram of p-values
+
+```{r}
+hist(res$pvalue)
+```
+
+## MA-plot and volcano plot
+
+```{r}
+DESeq2::plotMA(res)
+```
+
+```{r}
+ggplot(as.data.frame(res),
+       aes(x = log2FoldChange, y = -log10(pvalue), color = padj<=0.05)) +
+    geom_point() +
+    geom_vline(xintercept = c(-2, 2), linetype = "dotted")
+```
+
+## Visualize selected genes
+
+```{r}
+vsd <- vst(dds, blind = TRUE)
+
+# Get top DE genes
+genes <- res[order(res$pvalue), ] |>
+         head(30) |>
+         rownames()
+heatmapData <- assay(vsd)[genes, ]
+
+# Scale counts for visualization
+heatmapData <- t(scale(t(heatmapData)))
+
+# Add annotation
+heatmapColAnnot <- data.frame(colData(vsd)[, c("cell", "dex")])
+heatmapColAnnot <- HeatmapAnnotation(df = heatmapColAnnot)
+
+
+# Plot as heatmap
+ComplexHeatmap::Heatmap(heatmapData,
+                        top_annotation = heatmapColAnnot,
+                        cluster_rows = TRUE, cluster_columns = TRUE)
+```

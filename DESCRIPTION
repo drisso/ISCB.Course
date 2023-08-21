@@ -23,7 +23,9 @@ Imports:
     airway,
     ggplot2,
     EDASeq,
-    edgeR
+    edgeR,
+    DESeq2,
+    ComplexHeatmap
 Suggests:
     BiocStyle,
     knitr,
