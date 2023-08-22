@@ -20,8 +20,6 @@ library(ggplot2)
 theme_set(theme_bw())
 ```
 
-- TRADURRE IN INGLESE TUTTO
-
 # The Airway data
 
 ```{r}
@@ -81,7 +79,7 @@ pal <- palette()[-1]
 boxplot(log1p(assay(filtered)), col=pal[filtered$cell], las=2)
 ```
 
-Se vogliamo evitare di calcolare i logaritmi per ogni grafico, possiamo salvare la matrice dei logaritmi in un nuovo slot dell'oggetto `filtered`.
+Remember that the `SummarizedExperiment` object may contain multiple matrices (with the same dimension). Hence, we can "save" the log-transformed matrix in the object to avoid computing the log every time that we want to plot their distribution.
 
 ```{r}
 assay(filtered, "logcounts") <- log1p(assay(filtered))
@@ -90,19 +88,25 @@ filtered
 
 ## Relative Log Expression (RLE)
 
-Come detto a lezione, la distribuzione RLE è spesso più utile di quella dei conteggi, specialmente per confrontare le normalizzazioni.
+Sometimes, the log transformation is not enough to highlight issues with the sample distributions and the need for normalization. 
 
-Il pacchetto `EDASeq` contiene la funzione `plotRLE` che può essere usata in questo caso.
+In such cases, we can consider applying the Relative Log Expression (RLE) transformation, defined as
+$$
+z_{ij} = \log\left(\frac{y_{ij}}{\bar{y}_{\cdot j}}\right) = \log(y_{ij}) - \log(\bar{y}_{\cdot j}),
+$$
+where $y_{ij}$ is the read count of gene $j$ in sample $i$ and $\bar{y}_{\cdot j}$ is the median expression of gene $j$ across all samples.
+
+The `EDASeq` Bioconductor package contains the `plotRLE` function, which can be simply used in this way.
 
 ```{r}
 plotRLE(assay(filtered), col=pal[filtered$cell], outline=FALSE, las=2)
 ```
 
-## Analisi delle componenti principali
+## Principal Component Analysis (PCA)
 
-Osservare come le prime due o tre componenti principali segregano i campioni può aiutare a capire quali sono le variabili che più influenzano i valori di espressione. Idealmente, vorremmo che i campioni si raggruppassero per classe biologica.
+To understand which sample characteristics influence gene expression, it is a good idea to observe the first two or three principal components. Ideally, we would like the samples to group by biological variables and not technical noise.
 
-Il pacchetto `EDASeq` ha una funzione `plotPCA` che può essere usata in questo caso. In alternativa la PCA può essere calcolata manualmente con la solita funzione `prcomp()`.
+The `plotPCA` function of the `EDASeq` package can be used for this goal. Alternatively, one can use any of the R packages to compute the principal components.
 
 ```{r}
 tmp <- assay(filtered)
@@ -112,23 +116,39 @@ plotPCA(tmp, col=pal[filtered$dex])
 
 # Normalization
 
+Most of the differences that we see in the RLE plot are not driven by biological signal but due to technical differences between samples, e.g., the total number of reads sequenced for each sample.
+
+We can try to remove such differences via a normalization procedure. There are several different normalization methods proposed for RNA-seq data, but the simplest and often most effective scale each sample by a constant.
+
+The `EDASeq` package implements several such methods, including the "upper-quartile" methods that "aligns" the upper quartile of the distribution of each sample.
+
+Again, we can store the normalized matrix into an assay of the object.
+
 ```{r}
 assay(filtered, "uq") <- betweenLaneNormalization(assay(filtered), which="upper")
 ```
+
+We can check with a boxplot that the normalization worked as planned.
 
 ```{r}
 boxplot(log1p(assay(filtered, "uq")), col=pal[filtered$cell], las=2)
 ```
 
+Often, the RLE plot is useful to verify that the normalized data look good or to compare normalization methods. We want the median to be as close as possible to zero and the variability to be as balanced as possible between the samples.
+
 ```{r}
 plotRLE(assay(filtered, "uq"), col=pal[filtered$cell], las=2, outline=FALSE)
 ```
+
+Another useful diagnostic plot is the plot of the first two principal components. We expect the direction of most variability to be explained by biology rather than technical differences.
 
 ```{r}
 tmp <- assay(filtered, "uq")
 colnames(tmp) <- filtered$cell
 plotPCA(tmp, col=pal[filtered$dex])
 ```
+
+Unlike unnormalized data, after normalization the first principal component separates treated and control samples.
 
 # Session Info
 
