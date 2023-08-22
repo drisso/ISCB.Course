@@ -23,6 +23,8 @@ theme_set(theme_bw())
 
 # Load data and filtering
 
+We start by loading the airway data and repeat the same gene filter that we applied in the previous vignette.
+
 ```{r}
 data(airway)
 
@@ -33,21 +35,45 @@ filtered <- airway[filter,]
 filtered
 ```
 
+Now we can create a `DESEqDataSet` object: this is the object that we will use to conduct our differential expression analysis.
+
+Note that we start from the `SummarizedExperiment` object and we add a _design matrix_ that specifies which columns of the `colData` we will use as covariates in the statistical model.
+
 ```{r}
 dds <- DESeqDataSet(filtered,
                     design = ~ cell + dex)
 dds
+```
 
+Note that the DESeqDataSet class "inherits" from SummarizedExperiment, meaning that an object of this class is also a SummarizedExperiment and all its methods are still applicable.
+
+```{r}
 class(dds)
 is(dds, "SummarizedExperiment")
 ```
 
-# Normalization
+# Count-based differential expression
+
+The `DESeq2` package (as well as `edgeR` the other popular package for differential expression) uses a strategy that models the RNA-seq read counts directly in a Negative Binomial Generalized Linear Model (GLM).
+
+Hence, unlike other approaches, we will apply our statistical model directly to the count data, without the need for data transformation.
+
+In particular, for each gene, we fit a GLM with the formula specified above and we test the null hypothesis
+$$
+H_0: \beta = 0
+$$
+against a bilateral alternative, where $\beta$ is the coefficient of the covariate that we want to test (to be specified later), in this case `dex`, the treatment.
+
+## Normalization
+
+What we discussed about normalization is still relevant: we do not want to misinterpret technical differences as biological ones and identify genes that appear to differ between treated and control samples only because of technical reason.
+
+However, transforming the data via normalization is not an option since we want our GLM to model count data. The solution is to estimate the _size factors_ and include them in the model as _offsets_.
 
 ```{r}
 dds <- estimateSizeFactors(dds)
 
-ggplot(data.frame(libSize = colSums(assay(dds)),
+ggplot(data.frame(libSize = apply(assay(dds), 2, quantile, .75),
                   sizeFactor = sizeFactors(dds),
                   Group = dds$cell),
        aes(x = libSize, y = sizeFactor, col = Group)) +
@@ -55,7 +81,20 @@ ggplot(data.frame(libSize = colSums(assay(dds)),
 ```
 
 
-# Dispersion Estimation
+## Dispersion Estimation
+
+Usually, the Poisson distribution is a good starting point for count data. However, RNA-seq data are _overdispersed_, meaning that the variance is greater than the mean.
+
+For this reason, DESeq2 and edgeR use a negative binomial that assumes that the variance is a quadratic function of the mean:
+
+$$
+V(\mu) = \mu + \phi \mu^2,
+$$
+where $\phi$ is the _dispersion parameter_, to be estimated for each gene.
+
+Since we tipically have very large $p$ (genes) and small-ish $n$ (samples), a good strategy is to "borrow strength" across genes to improve the accuracy in the estimation of the dispersion parameters.
+
+DESeq2's strategy is to first compute a preliminary genewise estimate via maximum likelihood estimation, then estimate the mean-dispersion relationship fitting a regression line and finally _shrinking_ the estimates towards the fit. All three steps are performed within the `estimateDispersions` function.
 
 ```{r}
 dds <- estimateDispersions(dds)
@@ -65,13 +104,15 @@ dds <- estimateDispersions(dds)
 plotDispEsts(dds)
 ```
 
-# Test for DE
+## Test for DE
+
+Finally, we can use a Wald test to test the differential expression between, say, treated and control.
 
 ```{r}
 dds <- nbinomWaldTest(dds)
 ```
 
-Note that the function `DESeq()` performs these three steps automatically.
+Note that the wrapper function `DESeq()` performs these three steps automatically.
 
 # Explore the results
 
@@ -88,7 +129,11 @@ summary(res)
 head(res[order(res$pvalue), ])
 ```
 
+Since we have fitted a model for each gene, we need to take into account the multiple testing problem and consequently adjust the p-values. DESeq2 uses the Benjamini-Hochberg procedure to control the false discovery rate (FDR).
+
 ## Histogram of p-values
+
+One good diagnostic plot to check that the model fit is good is to look at the distribution of the p-values. We expect them to be a mixture of a uniform distribution (for those genes that are not DE) and a spike at 0 (for the DE genes).
 
 ```{r}
 hist(res$pvalue)
@@ -96,9 +141,13 @@ hist(res$pvalue)
 
 ## MA-plot and volcano plot
 
+A good way to visualize differential expression is the MA-plot (aka Mean-Difference plot). It consists of a 45-degree rotation of the scatterplot between the treated and control mean expression.
+
 ```{r}
 DESeq2::plotMA(res)
 ```
+
+Finally, the _volcano plot_ is a way to simultaneously look at the significance (on the y axis) and effect size (x axis) of differential expression.
 
 ```{r}
 ggplot(as.data.frame(res),
@@ -108,6 +157,8 @@ ggplot(as.data.frame(res),
 ```
 
 ## Visualize selected genes
+
+Very often we are interested in looking at the most differentially expressed genes. In this case, we focus on the top 30 genes ordered by p-value and visualize their expression in a heatmap.
 
 ```{r}
 vsd <- vst(dds, blind = TRUE)
