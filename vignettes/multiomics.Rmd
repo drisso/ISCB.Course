@@ -28,16 +28,36 @@ theme_set(theme_bw())
 knitr::include_graphics("https://waldronlab.io/MultiAssayWorkshop/articles/MultiAssayExperiment.png")
 ```
 
+In modern "multi-omic" experiments, several different omic data are collected on the same samples, e.g., RNA-seq, mutations, copy-number variation, etc.
+
+In these cases, it is useful to organize the data in a single object that has the ability of linking together samples from the same individuals and data types of different nature.
+
+The Bioconductor class for this task is the `MultiAssayExperiment`. Conceptually, it can be thought of as a list of objects, one per data modality, e.g., a SummarizedExperiment for the transcritpomic profiles, but it contains several features that make working with multi-omic data simpler.
+
+In order to see it in action, we look at an example from The Cancer Genome Atlas (TCGA).
+
 # Curated TCGA data
+
+Bioconductor includes the `curatedTCGAData` package, which contains a curated version of the multi-omic TCGA dataset. These data consist of thousands of samples across different cancer types.
 
 ```{r}
 data(diseaseCodes)
 diseaseCodes
 ```
 
+Let's focus on the Adrenocortical carcinoma (ACC) and let's see what type of data are available for this cohort.
+
+Adrenocortical carcinoma is a rare disease in which malignant (cancer) cells form in the outer layer of the adrenal gland.
+
+```{r, echo=FALSE}
+knitr::include_graphics("https://nci-media.cancer.gov/pdq/media/images/739009-750.jpg")
+```
+
 ```{r}
 curatedTCGAData("ACC", version = "2.0.1", dry.run = TRUE)
 ```
+
+We can for instance download gene expression, micro-RNA expression, mutations, and copy-number variation data from this cohort.
 
 ```{r}
 acc <- curatedTCGAData(
@@ -50,20 +70,29 @@ acc <- curatedTCGAData(
 )
 acc
 ```
+
+There are several utility functions that can be used to navigate this complex object:
+
 ```{r}
 experiments(acc)
 sampleMap(acc)
 sampleTables(acc)
 ```
 
+In particular, the `sampleTables` function tells us which type of samples we have in our object. We can use the following code for a human-readable version of the codes.
+
 ```{r}
 data("sampleTypes")
 sampleTypes
 ```
 
+In addition to the omic data, we also have clinical and demographic information for each patient. 
+
 ```{r}
 getSubtypeMap(acc)
 ```
+
+For instance, we can see that the tumors have been classified in terms of their histology and that using mutation data clinicians have determined several molecular subtypes.
 
 ```{r}
 table(colData(acc)$Histology)
@@ -72,6 +101,8 @@ table(colData(acc)$OncoSign)
 
 # Primary tumor RNA-seq
 
+Let's focus on primary tumor samples and let's extract the RNA-seq data.
+
 ```{r}
 primaryTumors <- TCGAprimaryTumors(acc)
 sampleTables(primaryTumors)
@@ -79,10 +110,14 @@ se <- getWithColData(primaryTumors, "ACC_RNASeq2GeneNorm-20160128")
 se
 ```
 
+As you can see we have hundreds of colData columns, but only a minority of them are useful for the analysis. We can use the following code to focus on the clinically-relevant features.
+
 ```{r}
 cl <- getClinicalNames("ACC")
 cl
 ```
+
+We can get simple exploratory statistics on them to get an idea of the characteristics of the cohort.
 
 ```{r}
 table(se$vital_status)
@@ -93,6 +128,10 @@ summary(se$years_to_birth)
 ```
 
 ## Differential expression
+
+Obviously, everything that we have done in the previous vignette can be done on these data as well. Here, some care is required on deciding which covariates to include in the model, as the usual issues with confounders in observational studies apply.
+
+Here, we decide to add gender and age as confounders as we test the difference in gene expression between molecular subtypes.
 
 ```{r}
 assay(se) <- round(assay(se))
@@ -108,6 +147,10 @@ head(res[order(res$pvalue),])
 ```
 # Survival Analysis
 
+Survival analysis of different disease subtypes is obviously relevant. 
+
+Here we look at overal survival using a standard model and look at the Kaplan-Meier curves contrasting two molecular subtypes.
+
 ```{r}
 se$overall_survival <- ifelse(se$vital_status == 1,
                                    se$days_to_death,
@@ -120,6 +163,10 @@ sfit <- survfit(Surv(overall_survival, vital_status)~OncoSign,
                 data=as.data.frame(colData(se_sub)))
 ggsurvplot(sfit, conf.int=TRUE, pval = TRUE)
 ```
+
+Here, we see evidence that the two subtypes have different overall survival, although more sophisticated survival models are likely needed.
+
+A typical workflow, which we do not have time to work through, is to use differential expression to identify "interesting" genes and then look at a classifier, often called a _signature_ in this context, able to group patients based on their survival. The usual care of machine learning approaches (e.g., cross-validation and train-test-validation splits) is required as in other cases.
 
 # Further reading
 
