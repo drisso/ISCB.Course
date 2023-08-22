@@ -492,15 +492,15 @@
 <span><span class="co">##   for column names in R. [This is a message, not a warning or an error]</span></span></code></pre>
 <pre><code><span><span class="co">## final dispersion estimates</span></span></code></pre>
 <pre><code><span><span class="co">## fitting model and testing</span></span></code></pre>
-<pre><code><span><span class="co">## 30 rows did not converge in beta, labelled in mcols(object)$betaConv. Use larger maxit argument with nbinomWaldTest</span></span></code></pre>
+<pre><code><span><span class="co">## 34 rows did not converge in beta, labelled in mcols(object)$betaConv. Use larger maxit argument with nbinomWaldTest</span></span></code></pre>
 <div class="sourceCode" id="cb83"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/DESeq2/man/results.html" class="external-link">results</a></span><span class="op">(</span><span class="va">dds</span>, contrast <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"OncoSign"</span>, <span class="st">"TERT/ZNRF3"</span>, <span class="st">"TP53/NF1"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## out of 19600 with nonzero total read count</span></span>
 <span><span class="co">## adjusted p-value &lt; 0.1</span></span>
-<span><span class="co">## LFC &gt; 0 (up)       : 35, 0.18%</span></span>
-<span><span class="co">## LFC &lt; 0 (down)     : 331, 1.7%</span></span>
+<span><span class="co">## LFC &gt; 0 (up)       : 36, 0.18%</span></span>
+<span><span class="co">## LFC &lt; 0 (down)     : 336, 1.7%</span></span>
 <span><span class="co">## outliers [1]       : 0, 0%</span></span>
 <span><span class="co">## low counts [2]     : 1896, 9.7%</span></span>
 <span><span class="co">## (mean count &lt; 1)</span></span>
@@ -513,12 +513,12 @@
 <span><span class="co">## DataFrame with 6 rows and 6 columns</span></span>
 <span><span class="co">##            baseMean log2FoldChange     lfcSE      stat      pvalue        padj</span></span>
 <span><span class="co">##           &lt;numeric&gt;      &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;   &lt;numeric&gt;   &lt;numeric&gt;</span></span>
-<span><span class="co">## CALML5     0.275942       35.06160  4.167792   8.41251 4.01326e-17          NA</span></span>
-<span><span class="co">## PRAMEF18   0.575532      -28.06625  4.164017  -6.74019 1.58182e-11          NA</span></span>
-<span><span class="co">## ANPEP    392.268477       -4.52832  0.690949  -6.55378 5.61003e-11 9.93201e-07</span></span>
-<span><span class="co">## MPP3      57.496064       -2.87737  0.458757  -6.27210 3.56217e-10 3.15323e-06</span></span>
-<span><span class="co">## USH1C     46.847855       -7.55418  1.228635  -6.14843 7.82523e-10 4.53296e-06</span></span>
-<span><span class="co">## DKK1      97.187249       -4.17584  0.683937  -6.10560 1.02417e-09 4.53296e-06</span></span></code></pre>
+<span><span class="co">## CALML5     0.275942       32.99735  4.167824   7.91716 2.42989e-15          NA</span></span>
+<span><span class="co">## ANPEP    392.268477       -4.52832  0.690949  -6.55377 5.61006e-11 9.93204e-07</span></span>
+<span><span class="co">## MPP3      57.496064       -2.87737  0.458757  -6.27210 3.56216e-10 3.15323e-06</span></span>
+<span><span class="co">## USH1C     46.847855       -7.55418  1.228636  -6.14843 7.82528e-10 4.53297e-06</span></span>
+<span><span class="co">## DKK1      97.187249       -4.17584  0.683937  -6.10560 1.02417e-09 4.53297e-06</span></span>
+<span><span class="co">## PRAMEF18   0.575532      -25.28543  4.164355  -6.07187 1.26428e-09          NA</span></span></code></pre>
 </div>
 </div>
 <div class="section level2">
