@@ -46,3 +46,38 @@ By the end of this course, you should be able to:
 The course is aimed at biostatisticians or medical researchers working with biological or clinical data that want to learn
 how to include genomics and transcriptomics data in their analyses. Participants are expected to have basic knowledge of
 the R statistical software; no prior knowledge of Bioconductor is required.
+
+## Docker container
+
+To run this tutorial in a
+[Docker container](ghcr.io/drisso/iscb.course:latest),
+pull the Docker image via
+
+```
+docker pull ghcr.io/drisso/iscb.course:latest
+``` 
+
+and then run the image via
+
+```
+docker run -e PASSWORD=bioc -p 8787:8787 ghcr.io/drisso/iscb.course:latest
+```
+
+Once running, navigate to http://localhost:8787/ in your browser and login with
+username `rstudio` and password `bioc`.
+
+## Local installation
+
+This tutorial can be installed like an ordinary R package via:
+
+```
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+if (!require("remotes", quietly = TRUE))
+    install.packages("remotes")
+
+BiocManager::install("drisso/ISCB.Course",
+                     dependencies = TRUE,
+                     build_vignettes = TRUE)
+```
