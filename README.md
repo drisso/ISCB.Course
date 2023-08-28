@@ -4,6 +4,10 @@
 
 Davide Risso, Department of Statistical Sciences, University of Padova, Italy
 
+## Slides
+
+The slides presented at the course are available [here](https://drive.google.com/file/d/1-7b_Yb4JuMDYN85MD16dDQfEMuwzTdce/view?usp=sharing).
+
 ## Description
 
 Omics data are quickly becoming ubiquitous in research and clinical studies, particularly in cancer, with several hospitals
